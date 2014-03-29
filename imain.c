@@ -129,7 +129,7 @@ void give_back_yeti(int yeti_id){
 	int i;
 	int yeti_tmp[] = {yeti_id, yeti[yeti_id][A_YETI_POWER]};
 
-	YETI_yeti_id][A_YETI_STAN] = FREE;
+	yeti[yeti_id][A_YETI_STAN] = FREE;
 	free_yetis = free_yetis + 1;
 	for ( i = 0; i < mpi_size; i++ ){
 		if ( i == mpi_rank )
@@ -182,10 +182,10 @@ void new_lecture(){
 
 	if ( rand()%100 <= NEW_LECTURE_CHANCE ){
 		
-		our_group[A_GROUP_YETI] = search_depper_in_array(yeti, YETI_NUMBERS, A_STAN, FREE, (1 +rand() % free_yetis));
+		our_group[A_GROUP_YETI] = search_depper_in_array(yeti, YETI_NUMBERS, A_YETI_STAN, FREE, (1 +rand() % free_yetis));
 		our_group[A_GROUP_ROOM] = search_in_array(room, ROOM_NUMBERS, FREE, (1 + rand() % free_rooms));
 
-		if (our_group[A_GROUP_YETI] != -1 && our_GROUP_[A_GROUP_ROOM] != -1 && free_projectors > 0){
+		if (our_group[A_GROUP_YETI] != -1 && our_group[A_GROUP_ROOM] != -1 && free_projectors > 0){
 
 			block_error = false;
 			yeti[our_group[A_GROUP_YETI]][A_YETI_STAN] = BLOCKED;
@@ -340,7 +340,7 @@ int main(int argc, char **argv){
 
 				case 4: //odblokowanie yeti
 					yeti[unblock_yeti_buf[0]][A_YETI_STAN] = FREE;
-					yeti[unblock_yeti_buf[1]][A_YETI_POWER] = unblock_yeti_buf[A_POWER];
+					yeti[unblock_yeti_buf[1]][A_YETI_POWER] = unblock_yeti_buf[A_YETI_POWER];
 					free_yetis = free_yetis + 1;
 
 					MPI_Irecv (&unblock_yeti_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_UNBLOCK_YETI, MPI_COMM_WORLD, &unblock_yeti_request);
