@@ -38,15 +38,25 @@
 #define WORKING 2
 
 // udawanie tablic asocjacyjnych
-#define A_STAN 0
-#define A_POWER 1
 
-#define A_YETI 0
-#define A_ROOM 1
-#define A_L_TIMESTAMP 2
+//yeti
+#define A_YETI_STAN 0
+#define A_YETI_POWER 1
 
-#define A_YETI_ID 0 
-#define A_TIMESTAMP 1
+// group
+#define A_GROUP_YETI 0
+#define A_GROUP_ROOM 1
+
+// meditaion_room
+#define A_TIMESTAMP 0
+#define A_YETI_ID 1 
+
+//lectures
+#define A_L_TIMESTAMP 0
+#define A_L_YETI 1
+#define A_L_ROOM 2 
+
+
 
 /*  Zmienne globalne  */
 
@@ -93,7 +103,7 @@ int search_in_array(int our_array[], int count, int value, int el_no){
 		return -1;
 }
 
-int search_in_array_depper(int our_array[][2], int count, int name, int value, int el_no){
+int search_depper_in_array(int our_array[][2], int count, int name, int value, int el_no){
 	bool found = false;
 	int i;
 
@@ -117,9 +127,9 @@ int search_in_array_depper(int our_array[][2], int count, int name, int value, i
 
 void give_back_yeti(int yeti_id){
 	int i;
-	int yeti_tmp[] = {yeti_id, yeti[yeti_id][A_POWER]};
+	int yeti_tmp[] = {yeti_id, yeti[yeti_id][A_YETI_POWER]};
 
-	yeti[yeti_id][A_STAN] = FREE;
+	YETI_yeti_id][A_YETI_STAN] = FREE;
 	free_yetis = free_yetis + 1;
 	for ( i = 0; i < mpi_size; i++ ){
 		if ( i == mpi_rank )
@@ -129,20 +139,20 @@ void give_back_yeti(int yeti_id){
 }
 
 void end_lecture(){
-	int yeti_id = lectures[0][A_YETI];
+	int yeti_id = lectures[0][A_L_YETI];
 	int i;
 
-	room[lectures[0][A_ROOM]] = FREE;
+	room[lectures[0][A_L_ROOM]] = FREE;
 	free_rooms = free_rooms + 1;
 	free_projectors = free_projectors + 1;
 	for (i = 0; i < mpi_size; i++){
 		if ( i == mpi_rank )
 				continue;
-		MPI_Send( &lectures[0][A_ROOM], 1, MPI_INT, i, MPI_UNBLOCK_ROOM, MPI_COMM_WORLD );				//odblokowuje pokój
+		MPI_Send( &lectures[0][A_L_ROOM], 1, MPI_INT, i, MPI_UNBLOCK_ROOM, MPI_COMM_WORLD );				//odblokowuje pokój
 	}
 
-	yeti[yeti_id][A_POWER] = yeti[yeti_id][A_POWER] - LECTURE_POWER_CONSUMPTION;
-	if (yeti[yeti_id][A_POWER] <= LECTURE_POWER_CONSUMPTION){
+	yeti[yeti_id][A_YETI_POWER] = yeti[yeti_id][A_YETI_POWER] - LECTURE_POWER_CONSUMPTION;
+	if (yeti[yeti_id][A_YETI_POWER] <= LECTURE_POWER_CONSUMPTION){
 		meditation_room[meditator_yetis][A_YETI_ID] = yeti_id;
 		meditation_room[meditator_yetis][A_TIMESTAMP] = timestamp + POWER_REGENERATION_TIME;
 
@@ -154,8 +164,8 @@ void end_lecture(){
 
 	for (i = 1; i <= active_lectures_count - 1; i++){
 		lectures[i-1][A_L_TIMESTAMP] = lectures[i][A_L_TIMESTAMP];
-		lectures[i-1][A_YETI] = lectures[i][A_YETI];
-		lectures[i-1][A_ROOM] = lectures[i][A_ROOM];
+		lectures[i-1][A_L_YETI] = lectures[i][A_L_YETI];
+		lectures[i-1][A_L_ROOM] = lectures[i][A_L_ROOM];
 
 	}
 	lectures[active_lectures_count - 1][A_L_TIMESTAMP] = 0;
@@ -172,14 +182,14 @@ void new_lecture(){
 
 	if ( rand()%100 <= NEW_LECTURE_CHANCE ){
 		
-		our_group[A_YETI] = search_in_array_depper(yeti, YETI_NUMBERS, A_STAN, FREE, (1 +rand() % free_yetis));
-		our_group[A_ROOM] = search_in_array(room, ROOM_NUMBERS, FREE, (1 + rand() % free_rooms));
+		our_group[A_GROUP_YETI] = search_depper_in_array(yeti, YETI_NUMBERS, A_STAN, FREE, (1 +rand() % free_yetis));
+		our_group[A_GROUP_ROOM] = search_in_array(room, ROOM_NUMBERS, FREE, (1 + rand() % free_rooms));
 
-		if (our_group[A_YETI] != -1 && our_group[A_ROOM] != -1 && free_projectors > 0){
+		if (our_group[A_GROUP_YETI] != -1 && our_GROUP_[A_GROUP_ROOM] != -1 && free_projectors > 0){
 
 			block_error = false;
-			yeti[our_group[A_YETI]][A_STAN] = BLOCKED;
-			room[our_group[A_ROOM]] = BLOCKED;
+			yeti[our_group[A_GROUP_YETI]][A_YETI_STAN] = BLOCKED;
+			room[our_group[A_GROUP_ROOM]] = BLOCKED;
 			free_yetis = free_yetis - 1;
 			free_rooms = free_rooms - 1;
 			free_projectors = free_projectors - 1;
@@ -206,8 +216,8 @@ void new_lecture(){
 
 
 			if (!block_error){
-				yeti[our_group[A_YETI]][A_STAN] = WORKING;
-				room[our_group[A_ROOM]] = WORKING;
+				yeti[our_group[A_GROUP_YETI]][A_YETI_STAN] = WORKING;
+				room[our_group[A_GROUP_ROOM]] = WORKING;
 				for (i = 0; i < mpi_size; i++){
 					if ( i == mpi_rank )
 						continue;
@@ -215,13 +225,13 @@ void new_lecture(){
 				}
 
 				lectures[active_lectures_count][A_L_TIMESTAMP] = timestamp + LECTURE_TIME;
-				lectures[active_lectures_count][A_YETI] = our_group[A_YETI];
-				lectures[active_lectures_count][A_ROOM] = our_group[A_ROOM];
+				lectures[active_lectures_count][A_L_YETI] = our_group[A_GROUP_YETI];
+				lectures[active_lectures_count][A_L_ROOM] = our_group[A_GROUP_ROOM];
 
 				active_lectures_count = active_lectures_count + 1;
 			}else{
-				yeti[our_group[A_YETI]][A_STAN] = FREE;
-				room[our_group[A_ROOM]] = FREE;
+				yeti[our_group[A_GROUP_YETI]][A_YETI_STAN] = FREE;
+				room[our_group[A_GROUP_ROOM]] = FREE;
 				free_yetis = free_yetis + 1;
 				free_rooms + 1;
 				free_projectors = free_projectors + 1;
@@ -254,8 +264,8 @@ int main(int argc, char **argv){
 
 
 	for ( i = 0; i < YETI_NUMBERS; i++ ){
-		yeti[i][A_STAN] = FREE;
-		yeti[i][A_POWER] = MAX_POWER;
+		yeti[i][A_YETI_STAN] = FREE;
+		yeti[i][A_YETI_POWER] = MAX_POWER;
 	} 
 
 	for ( i = 0; i < ROOM_NUMBERS; i++ ){
@@ -286,9 +296,9 @@ int main(int argc, char **argv){
 			switch(test_index){
 				case 0:	//pytanie o zasoby i blokowanie
 				
-					if (yeti[ask_buf[A_YETI]][A_STAN] == FREE && room[ask_buf[A_ROOM]] == FREE && free_projectors > 0){
-						yeti[ask_buf[A_YETI]][A_STAN] = BLOCKED;
-						room[ask_buf[A_ROOM]] = BLOCKED;
+					if (yeti[ask_buf[A_GROUP_YETI]][A_YETI_STAN] == FREE && room[ask_buf[A_GROUP_ROOM]] == FREE && free_projectors > 0){
+						yeti[ask_buf[A_GROUP_YETI]][A_YETI_STAN] = BLOCKED;
+						room[ask_buf[A_GROUP_ROOM]] = BLOCKED;
 						free_yetis = free_yetis - 1;
 						free_rooms = free_rooms - 1;
 						free_projectors = free_projectors - 1;
@@ -304,8 +314,8 @@ int main(int argc, char **argv){
 					break;
 
 				case 1: //odblokowywanie zasobów
-					yeti[unblock_buf[A_YETI]][A_STAN] = FREE;
-					room[unblock_buf[A_ROOM]] = FREE;
+					yeti[unblock_buf[A_GROUP_YETI]][A_YETI_STAN] = FREE;
+					room[unblock_buf[A_GROUP_ROOM]] = FREE;
 					free_yetis = free_yetis + 1;
 					free_rooms = free_rooms + 1;
 					free_projectors = free_projectors + 1;
@@ -314,8 +324,8 @@ int main(int argc, char **argv){
 					break;
 
 				case 2: //zajęcie zasobów
-					yeti[get_buf[A_YETI]][A_STAN] = WORKING;
-					room[get_buf[A_ROOM]] = WORKING;
+					yeti[get_buf[A_GROUP_YETI]][A_YETI_STAN] = WORKING;
+					room[get_buf[A_GROUP_ROOM]] = WORKING;
 
 					MPI_Irecv (&get_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_GET, MPI_COMM_WORLD, &get_request);
 					break;
@@ -329,8 +339,8 @@ int main(int argc, char **argv){
 					break;
 
 				case 4: //odblokowanie yeti
-					yeti[unblock_yeti_buf[0]][A_STAN] = FREE;
-					yeti[unblock_yeti_buf[1]][A_POWER] = unblock_yeti_buf[A_POWER];
+					yeti[unblock_yeti_buf[0]][A_YETI_STAN] = FREE;
+					yeti[unblock_yeti_buf[1]][A_YETI_POWER] = unblock_yeti_buf[A_POWER];
 					free_yetis = free_yetis + 1;
 
 					MPI_Irecv (&unblock_yeti_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_UNBLOCK_YETI, MPI_COMM_WORLD, &unblock_yeti_request);
@@ -353,7 +363,7 @@ int main(int argc, char **argv){
 				meditation_room[i-1][A_TIMESTAMP] = meditation_room[i][A_TIMESTAMP];
 
 			}
-			lectures[meditator_yetis - 1][A_TIMESTAMP] = 0;
+			lectures[meditator_yetis - 1][A_L_TIMESTAMP] = 0;
 			meditator_yetis = meditator_yetis - 1;	
 		}
 
