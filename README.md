@@ -4,7 +4,7 @@ MISTRZOWIE YETI
 Dawno, dawno temu, w odległej galaktyce sprawowali rządy niezbyt mądrzy, ale za to
 szlachetni i straszliwie potężni rycerze Yeti. Aby zostać mistrzem, młodzi kadeci
 powinni wysłuchiwać wykładów mistrzów. Wykłady te wymagają projektora oraz sali.
-Projektory wymagają MOCY aby działania (mistrzowie Yeti nie używają takich banalnych
+Projektory wymagają MOCY do działania (mistrzowie Yeti nie używają takich banalnych
 rzeczy jak elektryczność).
 
 Napisać procesy zarządzające organizowaniem wykładów dla kadetów. Zarządca
