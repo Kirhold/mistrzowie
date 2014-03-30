@@ -13,12 +13,12 @@
 #define PROJECTORS_NUMBER 10
 #define ROOM_NUMBERS 10
 #define MAX_POWER 1000 					// w jednostkach
-#define NEW_LECTURE_CHANCE 60 			// w procentach
+#define NEW_LECTURE_CHANCE 20 			// w procentach
 #define MIN_SLEEP_BETWEENS_ATTEMPS 50	// w sekundach
 #define MAX_SLEEP_BETWEENS_ATTEMPS 7	// w sekundach
 
 
-#define LECTURE_TIME 30					// w sekundach
+#define LECTURE_TIME 5					// w sekundach
 #define LECTURE_POWER_CONSUMPTION 10 	// w jednostkach
 
 #define POWER_REGENERATION_TIME 50		// w sekundach
@@ -135,7 +135,7 @@ void give_back_yeti(int yeti_id){
 	for ( i = 0; i < mpi_size; i++ ){
 		if ( i == mpi_rank )
 			continue;
-		MPI_Send( yeti_tmp, 2, MPI_INT, i, MPI_UNBLOCK_YETI, MPI_COMM_WORLD );			
+		MPI_Send( &yeti_tmp, 2, MPI_INT, i, MPI_UNBLOCK_YETI, MPI_COMM_WORLD );			
 	}
 }
 
@@ -151,7 +151,6 @@ void end_lecture(){
 				continue;
 		MPI_Send( &lectures[0][A_L_ROOM], 1, MPI_INT, i, MPI_UNBLOCK_ROOM, MPI_COMM_WORLD );				//odblokowuje pokój
 	}
-
 	yeti[yeti_id][A_YETI_POWER] = yeti[yeti_id][A_YETI_POWER] - LECTURE_POWER_CONSUMPTION;
 	if (yeti[yeti_id][A_YETI_POWER] <= LECTURE_POWER_CONSUMPTION){
 		meditation_room[meditator_yetis][A_YETI_ID] = yeti_id;
@@ -171,6 +170,7 @@ void end_lecture(){
 	}
 	lectures[active_lectures_count - 1][A_L_TIMESTAMP] = 0;
 	active_lectures_count = active_lectures_count - 1;
+
 }
 
 
@@ -182,7 +182,7 @@ void new_lecture(){
 	int our_group[2];
 	
 	if ( rand()%100 <= NEW_LECTURE_CHANCE ){
-		
+		printf("%i: Rozpoczęto tworzenie wykładu\n", mpi_rank);		
 		our_group[A_GROUP_YETI] = search_depper_in_array(yeti, YETI_NUMBERS, A_YETI_STAN, FREE, (1 +rand() % free_yetis));
 		our_group[A_GROUP_ROOM] = search_in_array(room, ROOM_NUMBERS, FREE, (1 + rand() % free_rooms));
 
@@ -230,19 +230,24 @@ void new_lecture(){
 				lectures[active_lectures_count][A_L_ROOM] = our_group[A_GROUP_ROOM];
 
 				active_lectures_count = active_lectures_count + 1;
+
+
+				printf("%i: rozpoczęto wykład!\n", mpi_rank);
 			}else{
 
-			printf("%i:Rozpoczęto wykład, wolnych projektorów:%i\n", mpi_rank, free_projectors);
 				yeti[our_group[A_GROUP_YETI]][A_YETI_STAN] = FREE;
 				room[our_group[A_GROUP_ROOM]] = FREE;
 				free_yetis = free_yetis + 1;
 				free_rooms + 1;
 				free_projectors = free_projectors + 1;
+
+				printf("%i: nie udało się rozpocząć wykładu!\n", mpi_rank);
 			}
 		}
 	}
 
 	next_new_lecture_time = timestamp + (rand() % (MAX_SLEEP_BETWEENS_ATTEMPS - MIN_SLEEP_BETWEENS_ATTEMPS)) + MIN_SLEEP_BETWEENS_ATTEMPS;
+
 }
 
 
@@ -258,6 +263,9 @@ int main(int argc, char **argv){
 	int get_buf[2];
 	int unblock_room_buf;
 	int unblock_yeti_buf[2];
+
+
+	int test =0;
 
 	MPI_Request ask_request;
 	MPI_Request unblock_request;
@@ -284,11 +292,11 @@ int main(int argc, char **argv){
 	srand(time(NULL)+mpi_rank);
 	printf("%i: Ready!\n", mpi_rank);
 
-	MPI_Irecv (&ask_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ASK, MPI_COMM_WORLD, &ask_request);
-	MPI_Irecv (&unblock_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_UNBLOCK, MPI_COMM_WORLD, &unblock_request);
-	MPI_Irecv (&get_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_GET, MPI_COMM_WORLD, &get_request);
+	MPI_Irecv (ask_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ASK, MPI_COMM_WORLD, &ask_request);
+	MPI_Irecv (unblock_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_UNBLOCK, MPI_COMM_WORLD, &unblock_request);
+	MPI_Irecv (get_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_GET, MPI_COMM_WORLD, &get_request);
 	MPI_Irecv (&unblock_room_buf, 1, MPI_INT, MPI_ANY_SOURCE, MPI_UNBLOCK_ROOM, MPI_COMM_WORLD, &unblock_room_request);
-	MPI_Irecv (&unblock_yeti_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_UNBLOCK_YETI, MPI_COMM_WORLD, &unblock_yeti_request);
+	MPI_Irecv (unblock_yeti_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_UNBLOCK_YETI, MPI_COMM_WORLD, &unblock_yeti_request);
 	
 	int request_list[] = {ask_request, unblock_request, get_request, unblock_room_request, unblock_yeti_request};
 
@@ -297,7 +305,7 @@ int main(int argc, char **argv){
 
 		MPI_Testany( 5, request_list, &test_index, &test_flag, &test_status );
 		while (test_flag){
-			printf("%iOtrzymano zapytanie nr %i od zarządcy %i:\n", mpi_rank, test_index, test_status.MPI_SOURCE);
+			
 			switch(test_index){
 				case 0:	//pytanie o zasoby i blokowanie
 				
@@ -310,56 +318,60 @@ int main(int argc, char **argv){
 
 						answer = 1;
 						MPI_Send( &answer, 1, MPI_INT, test_status.MPI_SOURCE, MPI_ANS, MPI_COMM_WORLD );				//pyta i blokuje
+						printf("%i Otrzymano zapytanie o zasoby od zarządcy %i: zgoda\n", mpi_rank, test_status.MPI_SOURCE);
 					}else{
 						answer = 0;
 						MPI_Send( &answer, 1, MPI_INT, test_status.MPI_SOURCE, MPI_ANS, MPI_COMM_WORLD );				//pyta i blokuje
+						printf("%i Otrzymano zapytanie o zasoby od zarządcy %i: odmowa\n", mpi_rank, test_status.MPI_SOURCE);
 					}
 
-					MPI_Irecv (&ask_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ASK, MPI_COMM_WORLD, &ask_request);
+					MPI_Irecv (ask_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ASK, MPI_COMM_WORLD, &ask_request);
 					break;
 
 				case 1: //odblokowywanie zasobów
+					printf("%i Odblokowano zasoby od zarządcy %i\n", mpi_rank, test_status.MPI_SOURCE);
 					yeti[unblock_buf[A_GROUP_YETI]][A_YETI_STAN] = FREE;
 					room[unblock_buf[A_GROUP_ROOM]] = FREE;
 					free_yetis = free_yetis + 1;
 					free_rooms = free_rooms + 1;
 					free_projectors = free_projectors + 1;
 
-					MPI_Irecv (&unblock_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_UNBLOCK, MPI_COMM_WORLD, &unblock_request);
+					MPI_Irecv (unblock_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_UNBLOCK, MPI_COMM_WORLD, &unblock_request);
 					break;
 
 				case 2: //zajęcie zasobów
+					printf("%i Zajęto zasoby dla zarządcy %i\n", mpi_rank, test_status.MPI_SOURCE);
+					
 					yeti[get_buf[A_GROUP_YETI]][A_YETI_STAN] = WORKING;
 					room[get_buf[A_GROUP_ROOM]] = WORKING;
 
-					MPI_Irecv (&get_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_GET, MPI_COMM_WORLD, &get_request);
+					MPI_Irecv (get_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_GET, MPI_COMM_WORLD, &get_request);
 					break;
 
 				case 3: // odblokowanie room
 					room[unblock_room_buf] = FREE;
 					free_rooms = free_rooms + 1;
 					free_projectors = free_projectors + 1;
-
 					MPI_Irecv (&unblock_room_buf, 1, MPI_INT, MPI_ANY_SOURCE, MPI_UNBLOCK_ROOM, MPI_COMM_WORLD, &unblock_room_request);
 					break;
 
 				case 4: //odblokowanie yeti
 					yeti[unblock_yeti_buf[0]][A_YETI_STAN] = FREE;
-					yeti[unblock_yeti_buf[1]][A_YETI_POWER] = unblock_yeti_buf[A_YETI_POWER];
+					yeti[unblock_yeti_buf[0]][A_YETI_POWER] = unblock_yeti_buf[1];
 					free_yetis = free_yetis + 1;
 
-					MPI_Irecv (&unblock_yeti_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_UNBLOCK_YETI, MPI_COMM_WORLD, &unblock_yeti_request);
+					MPI_Irecv (unblock_yeti_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_UNBLOCK_YETI, MPI_COMM_WORLD, &unblock_yeti_request);
 					break;			
 			}	
 
 			MPI_Testany( 5, request_list, &test_index, &test_flag, &test_status );
 		}
 
-		while ( timestamp > lectures[0][A_L_TIMESTAMP] && active_lectures_count > 0){
-			printf("%i: Zakończono wykład\n", mpi_rank);
-			end_lecture();
-		}
 
+		while ( timestamp > lectures[0][A_L_TIMESTAMP] && active_lectures_count > 0){
+			end_lecture();
+			printf("%i: Zakończono wykład\n", mpi_rank);
+		}
 
 		while ( timestamp > meditation_room[0][A_TIMESTAMP] && meditator_yetis > 0){
 			give_back_yeti(meditation_room[0][A_YETI_ID]);
@@ -375,13 +387,13 @@ int main(int argc, char **argv){
 		}
 
 		while ( timestamp > next_new_lecture_time ){
+
 			new_lecture();
 		}
 
 
-
 fflush(0);
-		usleep(50);
+		usleep(150);
 	}
 
     MPI_Finalize();
