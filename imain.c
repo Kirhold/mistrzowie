@@ -303,7 +303,7 @@ void new_lecture(){
 	MPI_Status tmp_status;
 	MPI_Request tmp_request;
 	
-	if ( rand()%100 <= NEW_LECTURE_CHANCE ){
+	if ( rand()%100 <= NEW_LECTURE_CHANCE && free_yetis > 0 && free_rooms > 0 && free_projectors > 0){
 		our_group[A_GROUP_YETI] = search_depper_in_array(yeti, YETI_NUMBERS, A_YETI_STAN, FREE, (1 +rand() % free_yetis));
 		our_group[A_GROUP_ROOM] = search_in_array(room, ROOM_NUMBERS, FREE, (1 + rand() % free_rooms));
 
