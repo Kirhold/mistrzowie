@@ -275,7 +275,7 @@ void end_lecture(){
 		meditation_room[meditator_yetis][A_TIMESTAMP] = timestamp + POWER_REGENERATION_TIME;
 
 		meditator_yetis = meditator_yetis + 1; 
-		printf("%i: wysyłam yeti na medytacje", mpi_rank);
+		printf("%i: wysyłam yeti na medytacje\n", mpi_rank);
 	
 	}else
 		give_back_yeti(yeti_id);
@@ -350,7 +350,7 @@ void new_lecture(){
 						}while (!tmp_flag);
 					}
 
-					printf("%i: nieudane rozpoczęcie wykładu: %i nie udąstępnił zasobów!", mpi_rank, i);
+					printf("%i: nieudane rozpoczęcie wykładu: %i nie udąstępnił zasobów!\n", mpi_rank, i);
 					block_error = true;
 					break;
 				}
