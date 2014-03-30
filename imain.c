@@ -12,7 +12,7 @@
 #define YETI_NUMBERS 10
 #define PROJECTORS_NUMBER 10
 #define ROOM_NUMBERS 10
-#define MAX_POWER 1000 					// w jednostkach
+#define MAX_POWER 20 					// w jednostkach
 #define NEW_LECTURE_CHANCE 50 			// w procentach
 #define MIN_SLEEP_BETWEENS_ATTEMPS 10	// w sekundach
 #define MAX_SLEEP_BETWEENS_ATTEMPS 7	// w sekundach
@@ -275,6 +275,7 @@ void end_lecture(){
 		meditation_room[meditator_yetis][A_TIMESTAMP] = timestamp + POWER_REGENERATION_TIME;
 
 		meditator_yetis = meditator_yetis + 1; 
+		printf("%i: wysyłam yeti na medytacje", mpi_rank);
 	
 	}else
 		give_back_yeti(yeti_id);
@@ -309,7 +310,7 @@ void new_lecture(){
 
 
 		if (our_group[A_GROUP_YETI] != -1 && our_group[A_GROUP_ROOM] != -1 && free_projectors > 0){
-			printf("%i: Rozpoczęto tworzenie wykładu\n", mpi_rank);		
+			//printf("%i: Rozpoczęto tworzenie wykładu\n", mpi_rank);		
 		
 			block_error = false;
 			yeti[our_group[A_GROUP_YETI]][A_YETI_STAN] = BLOCKED;
@@ -349,6 +350,7 @@ void new_lecture(){
 						}while (!tmp_flag);
 					}
 
+					printf("%i: nieudane rozpoczęcie wykładu: %i nie udąstępnił zasobów!", mpi_rank, i);
 					block_error = true;
 					break;
 				}
@@ -387,7 +389,7 @@ void new_lecture(){
 				free_rooms + 1;
 				free_projectors = free_projectors + 1;
 
-				printf("%i: nie udało się rozpocząć wykładu!\n", mpi_rank);
+				//printf("%i: nie udało się rozpocząć wykładu!\n", mpi_rank);
 			}
 		}
 	}
