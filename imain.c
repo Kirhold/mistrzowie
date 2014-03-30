@@ -350,7 +350,7 @@ void new_lecture(){
 						}while (!tmp_flag);
 					}
 
-					printf("%i: \tnieudane rozpoczęcie wykładu: %i nie udostępnił zasobów! (%i:%i)\n", mpi_rank, i, our_group[0], our_group[1]);
+					printf("%i: \tnieudane rozpoczęcie wykładu: %i nie udostępnił zasobów! (%i:%i)\n", mpi_rank, i, our_group[A_GROUP_YETI], our_group[A_GROUP_ROOM]);
 					block_error = true;
 					break;
 				}
@@ -380,7 +380,7 @@ void new_lecture(){
 				active_lectures_count = active_lectures_count + 1;
 
 
-				printf("%i: \trozpoczęto wykład! (%i:%i)\n", mpi_rank, our_group[0], our_group[1]);
+				printf("%i: \trozpoczęto wykład! (%i:%i)\n", mpi_rank, our_group[A_GROUP_YETI], our_group[A_GROUP_ROOM]);
 			}else{
 
 				yeti[our_group[A_GROUP_YETI]][A_YETI_STAN] = FREE;
