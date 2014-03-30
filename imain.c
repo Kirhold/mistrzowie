@@ -441,6 +441,7 @@ int main(int argc, char **argv){
 		}
 
 		while ( timestamp > meditation_room[0][A_TIMESTAMP] && meditator_yetis > 0){
+			yeti[meditation_room[0][A_YETI_ID]][A_YETI_POWER] = MAX_POWER;
 			give_back_yeti(meditation_room[0][A_YETI_ID]);
 
 			printf("%i: \tMistrz wrócił z odpoczynku! (%i)\n", mpi_rank, meditation_room[0][A_YETI_ID]);
