@@ -6,13 +6,14 @@
 #include <unistd.h>
 
 
+
 /* Konfiguracja świata "far far away" */
 
 #define YETI_NUMBERS 10
 #define PROJECTORS_NUMBER 10
 #define ROOM_NUMBERS 10
 #define MAX_POWER 1000 					// w jednostkach
-#define NEW_LECTURE_CHANCE 20 			// w procentach
+#define NEW_LECTURE_CHANCE 60 			// w procentach
 #define MIN_SLEEP_BETWEENS_ATTEMPS 50	// w sekundach
 #define MAX_SLEEP_BETWEENS_ATTEMPS 7	// w sekundach
 
@@ -179,9 +180,11 @@ void new_lecture(){
 	MPI_Status status;
 	int i, j;
 	int our_group[2];
-
+	int chance = ;
+	
 	if ( rand()%100 <= NEW_LECTURE_CHANCE ){
 		
+			printf("%i:Rozpoczęto wykład, wolnych projektorów:%i\n", mpi_rank, free_projectors);
 		our_group[A_GROUP_YETI] = search_depper_in_array(yeti, YETI_NUMBERS, A_YETI_STAN, FREE, (1 +rand() % free_yetis));
 		our_group[A_GROUP_ROOM] = search_in_array(room, ROOM_NUMBERS, FREE, (1 + rand() % free_rooms));
 
@@ -262,7 +265,6 @@ int main(int argc, char **argv){
 	MPI_Request unblock_room_request;
 	MPI_Request unblock_yeti_request;
 
-
 	for ( i = 0; i < YETI_NUMBERS; i++ ){
 		yeti[i][A_YETI_STAN] = FREE;
 		yeti[i][A_YETI_POWER] = MAX_POWER;
@@ -279,6 +281,8 @@ int main(int argc, char **argv){
 	MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 
 
+	srand(time(NULL)+mpi_rank);
+	printf("%i: Ready!\n", mpi_rank);
 
 	MPI_Irecv (&ask_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ASK, MPI_COMM_WORLD, &ask_request);
 	MPI_Irecv (&unblock_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_UNBLOCK, MPI_COMM_WORLD, &unblock_request);
@@ -293,6 +297,7 @@ int main(int argc, char **argv){
 
 		MPI_Testany( 5, request_list, &test_index, &test_flag, &test_status );
 		while (test_flag){
+			printf("%iOtrzymano zapytanie nr %i od zarządcy %i:\n", mpi_rank, test_index, test_status.MPI_SOURCE);
 			switch(test_index){
 				case 0:	//pytanie o zasoby i blokowanie
 				
@@ -351,6 +356,7 @@ int main(int argc, char **argv){
 		}
 
 		while ( timestamp > lectures[0][A_L_TIMESTAMP] && active_lectures_count > 0){
+			printf("%i: Zakończono wykład\n", mpi_rank);
 			end_lecture();
 		}
 
@@ -363,6 +369,7 @@ int main(int argc, char **argv){
 				meditation_room[i-1][A_TIMESTAMP] = meditation_room[i][A_TIMESTAMP];
 
 			}
+			printf("%i: Mistrz wrócił z odpoczynku!\n", mpi_rank);
 			lectures[meditator_yetis - 1][A_L_TIMESTAMP] = 0;
 			meditator_yetis = meditator_yetis - 1;	
 		}
@@ -371,6 +378,9 @@ int main(int argc, char **argv){
 			new_lecture();
 		}
 
+
+
+fflush(0);
 		usleep(50);
 	}
 
