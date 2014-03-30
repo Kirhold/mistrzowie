@@ -180,11 +180,9 @@ void new_lecture(){
 	MPI_Status status;
 	int i, j;
 	int our_group[2];
-	int chance = ;
 	
 	if ( rand()%100 <= NEW_LECTURE_CHANCE ){
 		
-			printf("%i:Rozpoczęto wykład, wolnych projektorów:%i\n", mpi_rank, free_projectors);
 		our_group[A_GROUP_YETI] = search_depper_in_array(yeti, YETI_NUMBERS, A_YETI_STAN, FREE, (1 +rand() % free_yetis));
 		our_group[A_GROUP_ROOM] = search_in_array(room, ROOM_NUMBERS, FREE, (1 + rand() % free_rooms));
 
@@ -233,6 +231,8 @@ void new_lecture(){
 
 				active_lectures_count = active_lectures_count + 1;
 			}else{
+
+			printf("%i:Rozpoczęto wykład, wolnych projektorów:%i\n", mpi_rank, free_projectors);
 				yeti[our_group[A_GROUP_YETI]][A_YETI_STAN] = FREE;
 				room[our_group[A_GROUP_ROOM]] = FREE;
 				free_yetis = free_yetis + 1;
