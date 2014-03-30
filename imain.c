@@ -350,7 +350,7 @@ void new_lecture(){
 						}while (!tmp_flag);
 					}
 
-					printf("%i: nieudane rozpoczęcie wykładu: %i nie udąstępnił zasobów!\n", mpi_rank, i);
+					printf("%i: nieudane rozpoczęcie wykładu: %i nie udostępnił zasobów!\n", mpi_rank, i);
 					block_error = true;
 					break;
 				}
