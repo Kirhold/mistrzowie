@@ -81,7 +81,7 @@ int meditator_yetis = 0;
 
 int next_new_lecture_time = 0;
 
-
+int tmp;
 	int test_index;
 	int test_flag;
 	int answer;
@@ -107,6 +107,12 @@ int next_new_lecture_time = 0;
 
 
 void response(){
+		request_list[0] = ask_request;
+	request_list[1] = unblock_request;
+	request_list[2] = get_request;
+	request_list[3] = unblock_room_request;
+	request_list[4] = unblock_yeti_request;
+
 
 	MPI_Testany( 5, request_list, &test_index, &test_flag, &test_status );
 	while (test_flag){
@@ -376,11 +382,6 @@ int main(int argc, char **argv){
 	MPI_Irecv (&unblock_room_buf, 1, MPI_INT, MPI_ANY_SOURCE, MPI_UNBLOCK_ROOM, MPI_COMM_WORLD, &unblock_room_request);
 	MPI_Irecv (unblock_yeti_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_UNBLOCK_YETI, MPI_COMM_WORLD, &unblock_yeti_request);
 	
-	request_list[0] = ask_request;
-	request_list[1] = unblock_request;
-	request_list[2] = get_request;
-	request_list[3] = unblock_room_request;
-	request_list[4] = unblock_yeti_request;
 
 	
 	while (1){
