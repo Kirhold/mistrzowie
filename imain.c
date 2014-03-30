@@ -21,7 +21,7 @@
 #define LECTURE_TIME 5					// w sekundach
 #define LECTURE_POWER_CONSUMPTION 10 	// w jednostkach
 
-#define POWER_REGENERATION_TIME 50		// w sekundach
+#define POWER_REGENERATION_TIME 30		// w sekundach
 
 /* ---------------------------------------------------------- */
 
@@ -275,7 +275,7 @@ void end_lecture(){
 		meditation_room[meditator_yetis][A_TIMESTAMP] = timestamp + POWER_REGENERATION_TIME;
 
 		meditator_yetis = meditator_yetis + 1; 
-		printf("%i: wysyłam yeti na medytacje\n", mpi_rank);
+		printf("%i: wysyłam yeti na medytacje (%i)\n", mpi_rank, yeti_id);
 	
 	}else
 		give_back_yeti(yeti_id);
@@ -350,7 +350,7 @@ void new_lecture(){
 						}while (!tmp_flag);
 					}
 
-					printf("%i: nieudane rozpoczęcie wykładu: %i nie udostępnił zasobów! %i:%i\n", mpi_rank, i, our_group[0], our_group[1]);
+					printf("%i: nieudane rozpoczęcie wykładu: %i nie udostępnił zasobów! (%i:%i)\n", mpi_rank, i, our_group[0], our_group[1]);
 					block_error = true;
 					break;
 				}
@@ -380,7 +380,7 @@ void new_lecture(){
 				active_lectures_count = active_lectures_count + 1;
 
 
-				printf("%i: rozpoczęto wykład! %i:%i\n", mpi_rank, our_group[0], our_group[1]);
+				printf("%i: rozpoczęto wykład! (%i:%i)\n", mpi_rank, our_group[0], our_group[1]);
 			}else{
 
 				yeti[our_group[A_GROUP_YETI]][A_YETI_STAN] = FREE;
@@ -443,12 +443,13 @@ int main(int argc, char **argv){
 		while ( timestamp > meditation_room[0][A_TIMESTAMP] && meditator_yetis > 0){
 			give_back_yeti(meditation_room[0][A_YETI_ID]);
 
+			printf("%i: Mistrz wrócił z odpoczynku! (%i)\n", mpi_rank, meditation_room[0][A_YETI_ID]);
+
 			for (i = 1; i <= meditator_yetis - 1; i++){
 				meditation_room[i-1][A_YETI_ID] = meditation_room[i][A_YETI_ID];
 				meditation_room[i-1][A_TIMESTAMP] = meditation_room[i][A_TIMESTAMP];
 
 			}
-			printf("%i: Mistrz wrócił z odpoczynku!\n", mpi_rank);
 			lectures[meditator_yetis - 1][A_L_TIMESTAMP] = 0;
 			meditator_yetis = meditator_yetis - 1;	
 		}
