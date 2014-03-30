@@ -12,7 +12,7 @@
 #define YETI_NUMBERS 10
 #define PROJECTORS_NUMBER 10
 #define ROOM_NUMBERS 10
-#define MAX_POWER 20 					// w jednostkach
+#define MAX_POWER 100 					// w jednostkach
 #define NEW_LECTURE_CHANCE 50 			// w procentach
 #define MIN_SLEEP_BETWEENS_ATTEMPS 10	// w sekundach
 #define MAX_SLEEP_BETWEENS_ATTEMPS 7	// w sekundach
@@ -134,7 +134,7 @@ void response(){
 				}else{
 					answer = 0;
 					MPI_Issend (&answer, 1, MPI_INT, test_status.MPI_SOURCE, MPI_ANS, MPI_COMM_WORLD, &any_request);
-					printf("%i Otrzymano zapytanie o zasoby od zarządcy %i: odmowa\n", mpi_rank, test_status.MPI_SOURCE);
+					//printf("%i Otrzymano zapytanie o zasoby od zarządcy %i: odmowa\n", mpi_rank, test_status.MPI_SOURCE);
 				}
 
 				MPI_Irecv (ask_buf, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ASK, MPI_COMM_WORLD, &ask_request);
@@ -350,7 +350,7 @@ void new_lecture(){
 						}while (!tmp_flag);
 					}
 
-					printf("%i: nieudane rozpoczęcie wykładu: %i nie udostępnił zasobów!\n", mpi_rank, i);
+					printf("%i: nieudane rozpoczęcie wykładu: %i nie udostępnił zasobów! %i:%i\n", mpi_rank, i, our_group[0], our_group[1]);
 					block_error = true;
 					break;
 				}
@@ -380,7 +380,7 @@ void new_lecture(){
 				active_lectures_count = active_lectures_count + 1;
 
 
-				printf("%i: rozpoczęto wykład!\n", mpi_rank);
+				printf("%i: rozpoczęto wykład! %i:%i\n", mpi_rank, our_group[0], our_group[1]);
 			}else{
 
 				yeti[our_group[A_GROUP_YETI]][A_YETI_STAN] = FREE;
