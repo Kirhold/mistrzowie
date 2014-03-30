@@ -13,7 +13,7 @@
 #define PROJECTORS_NUMBER 10
 #define ROOM_NUMBERS 10
 #define MAX_POWER 100 					// w jednostkach
-#define NEW_LECTURE_CHANCE 50 			// w procentach
+#define NEW_LECTURE_CHANCE 30 			// w procentach
 #define MIN_SLEEP_BETWEENS_ATTEMPS 10	// w sekundach
 #define MAX_SLEEP_BETWEENS_ATTEMPS 7	// w sekundach
 
