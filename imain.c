@@ -104,7 +104,6 @@ int request_list[5];
 
 /*  Funkcje   */
 
-
 void response(){
 		request_list[0] = ask_request;
 	request_list[1] = unblock_request;
@@ -238,7 +237,7 @@ void give_back_yeti(int yeti_id){
 		if ( i == mpi_rank )
 			continue;
 
-		MPI_Issend (&yeti_tmp, 2, MPI_INT, i, MPI_UNBLOCK_YETI, MPI_COMM_WORLD, &tmp_request);//pyta i blokuje
+		MPI_Issend (&yeti_tmp, 2, MPI_INT, i, MPI_UNBLOCK_YETI, MPI_COMM_WORLD, &tmp_request);//oddaje yeti
 		do{
 			response();
 			MPI_Test (&tmp_request, &tmp_flag, &tmp_status);
@@ -246,6 +245,24 @@ void give_back_yeti(int yeti_id){
 		}while (!tmp_flag);		
 	}
 }
+
+
+void get_yeti_back(){
+	int i;
+	yeti[meditation_room[0][A_YETI_ID]][A_YETI_POWER] = MAX_POWER;
+	give_back_yeti(meditation_room[0][A_YETI_ID]);
+
+	printf("%i: \tMistrz wrócił z odpoczynku! (%i)\n", mpi_rank, meditation_room[0][A_YETI_ID]);
+
+	for (i = 1; i <= meditator_yetis - 1; i++){
+		meditation_room[i-1][A_YETI_ID] = meditation_room[i][A_YETI_ID];
+		meditation_room[i-1][A_TIMESTAMP] = meditation_room[i][A_TIMESTAMP];
+
+	}
+	lectures[meditator_yetis - 1][A_L_TIMESTAMP] = 0;
+	meditator_yetis = meditator_yetis - 1;	
+}
+
 
 void end_lecture(){
 	int yeti_id = lectures[0][A_L_YETI];
@@ -443,18 +460,7 @@ int main(int argc, char **argv){
 		}
 
 		while ( timestamp > meditation_room[0][A_TIMESTAMP] && meditator_yetis > 0){
-			yeti[meditation_room[0][A_YETI_ID]][A_YETI_POWER] = MAX_POWER;
-			give_back_yeti(meditation_room[0][A_YETI_ID]);
-
-			printf("%i: \tMistrz wrócił z odpoczynku! (%i)\n", mpi_rank, meditation_room[0][A_YETI_ID]);
-
-			for (i = 1; i <= meditator_yetis - 1; i++){
-				meditation_room[i-1][A_YETI_ID] = meditation_room[i][A_YETI_ID];
-				meditation_room[i-1][A_TIMESTAMP] = meditation_room[i][A_TIMESTAMP];
-
-			}
-			lectures[meditator_yetis - 1][A_L_TIMESTAMP] = 0;
-			meditator_yetis = meditator_yetis - 1;	
+			get_yeti_back();
 		}
 
 		while ( timestamp > next_new_lecture_time ){
@@ -470,7 +476,7 @@ int main(int argc, char **argv){
 		prev_timestamp = timestamp;
 
 		fflush(0);
-		usleep(150);
+		usleep(300);
 	}
 
     MPI_Finalize();
