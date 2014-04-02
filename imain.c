@@ -105,12 +105,12 @@ int request_list[5];
 /*  Funkcje   */
 
 void response(){
-		request_list[0] = ask_request;
+	request_list[0] = ask_request;
 	request_list[1] = unblock_request;
 	request_list[2] = get_request;
 	request_list[3] = unblock_room_request;
 	request_list[4] = unblock_yeti_request;
- MPI_Request any_request;
+	MPI_Request any_request;
 
 	MPI_Testany( 5, request_list, &test_index, &test_flag, &test_status );
 	while (test_flag){
@@ -224,7 +224,7 @@ int search_depper_in_array(int our_array[][2], int count, int name, int value, i
 }
 
 
-void give_back_yeti(int yeti_id){
+void give_yeti_back(int yeti_id){
 	int i;
 	int yeti_tmp[] = {yeti_id, yeti[yeti_id][A_YETI_POWER]};
 	int tmp_flag;
@@ -250,7 +250,7 @@ void give_back_yeti(int yeti_id){
 void get_yeti_back(){
 	int i;
 	yeti[meditation_room[0][A_YETI_ID]][A_YETI_POWER] = MAX_POWER;
-	give_back_yeti(meditation_room[0][A_YETI_ID]);
+	give_yeti_back(meditation_room[0][A_YETI_ID]);
 
 	printf("%i: \tMistrz wrócił z odpoczynku! (%i)\n", mpi_rank, meditation_room[0][A_YETI_ID]);
 
@@ -296,7 +296,7 @@ void end_lecture(){
 		printf("%i: \twysyłam Mistrza na medytacje (%i)\n", mpi_rank, yeti_id);
 	
 	}else
-		give_back_yeti(yeti_id);
+		give_yeti_back(yeti_id);
 
 
 	for (i = 1; i <= active_lectures_count - 1; i++){
